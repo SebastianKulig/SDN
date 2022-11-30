@@ -55,7 +55,7 @@ def stop_attack():
 
 def stop_monitor():
     info('*** Stop monitor\n')
-    cmd = "killall bwm-ng"
+    cmd = "killall bwm-ng ; sed -i '1i timestamp,interface,bytes_out_s,bytes_in_s,bytes_total_s,bytes_in,bytes_out,packets_out_s,packets_in_s,packets_total_s,packets_in,packets_out,errors_out_s,errors_in_s,errors_in,errors_out' tmp.txt"
     Popen(cmd, shell=True).wait()
 
 
