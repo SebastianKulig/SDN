@@ -2,7 +2,7 @@ import csv
 import os
 import sys
 from subprocess import Popen
-from time import sleep, time
+import time
 
 from mininet.cli import CLI
 from mininet.log import setLogLevel
@@ -11,7 +11,7 @@ from mininet.net import Mininet
 from mininet.node import RemoteController, OVSSwitch
 from mininet.topo import Topo
 from mininet.util import dumpNodeConnections
-
+from mininet.link import TCLink
 
 class CustomTopo(Topo):
 
@@ -27,11 +27,12 @@ class CustomTopo(Topo):
         s1 = self.addSwitch('s1')
 
         # Add links
-        self.addLink(h1, s1)
-        self.addLink(h2, s1)
-        self.addLink(h3, s1)
-        self.addLink(h4, s1)
-        self.addLink(server, s1)
+        linkOpts = dict(bw=10, delay='5ms', max_queue_size=1000, use_htb=True)
+        self.addLink(h1, s1, **linkOpts)
+        self.addLink(h2, s1, **linkOpts)
+        self.addLink(h3, s1, **linkOpts)
+        self.addLink(h4, s1, **linkOpts)
+        self.addLink(server, s1, **linkOpts)
 
 
 def start_monitor():
@@ -44,8 +45,20 @@ def start_attack(net):
     info('*** Start attack\n')
     h1 = net.get('h1')
     server = net.get('server')
-    h1.cmd("hping3 --flood --udp -p 80 {} &".format(server.IP()))
+#    h1.cmd("hping3 --flood -p 80 {} &".format(server.IP()))
+    h1.cmd("hping3 -1 -d 100000 {} &".format(server.IP()))
 
+def start_normal_traffic(net):
+   info('*** Start normal traffic ***')
+   h2 = net.get('h2')
+   server = net.get('server')
+   h2.cmd('hping3 -1 -d 100 {} &'.format(server.IP()))
+   
+   h3 = net.get('h3')
+   h3.cmd('hping3 -1 -d 100 {} &'.format(server.IP()))
+
+   h4 = net.get('h4')
+   h4.cmd('hping3 -1 -d 100 {} &'.format(server.IP()))
 
 def stop_attack():
     info('*** Stop attack\n')
@@ -60,21 +73,31 @@ def stop_monitor():
 
 
 def run():
+    controler = RemoteController('controler', ip='127.0.0.1', port=6653)
     # Create an instance of our topology
     topo = CustomTopo()
     # Create a network based on the topology using OVS and controlled by a remote controller.
-    net = Mininet(topo=topo, switch=OVSSwitch, autoSetMacs=True)
+    net = Mininet(topo=topo, switch=OVSSwitch, autoSetMacs=True, controller=controler, link = TCLink)
+
     # Start the network
     net.start()
+
     # Start http server
     net.get('server').cmd('python -m SimpleHTTPServer 80 &')
+
+    # Start generating traffic
+    start_normal_traffic(net)
+    
     start_monitor()
-    sleep(5)
+    time.sleep(5)
     start_attack(net)
-    sleep(5)
+    time.sleep(60)
+  #  CLI( net )
+
     stop_attack()
-    sleep(5)
+    time.sleep(5)
     stop_monitor()
+    CLI(net)
     net.stop()
 
 

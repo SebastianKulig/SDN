@@ -2,11 +2,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def main(filename: str) -> None:
+def main(filename : str):
     df = pd.read_csv(filename, sep=',')
 
     # funkcje agregujące
-    agg_functions = {'interface': 'first', 'packets_in_s': 'mean', 'packets_in': 'sum'}
+    agg_functions = {'interface': 'first', 'packets_out_s': 'mean', 'packets_out': 'sum'}
 
     # grupuj po czasie i interfejsie, a następnie zaaplikuj zdefiniowane funkcje
     cleaned_data = df.groupby(['timestamp', 'interface']).aggregate(agg_functions)
@@ -19,7 +19,7 @@ def main(filename: str) -> None:
 
     # rysowanie wykresów
     for x in iface:
-        tmp = cleaned_data.loc[cleaned_data['interface'] == x]['packets_in'].to_list()
+        tmp = cleaned_data.loc[cleaned_data['interface'] == x]['packets_out'].tolist()
         plt.plot([ i for i in range(len(tmp)) ], tmp)
 
     plt.yscale('log')
@@ -32,4 +32,3 @@ def main(filename: str) -> None:
 
 if __name__ == '__main__':
     main('tmp.txt')
-
