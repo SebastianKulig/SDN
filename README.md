@@ -19,10 +19,11 @@ przygotowana topologia  znajduje się w pliku [custom_topology_raw.py](https://g
 
 Całość została podzielona na trzy moduły funkcjonalne:
 1. Zbieranie statystyk z przełącznika - klasa `StatisticsCollector` w pakiecie `pl.edu.agh.kt`
-2. Podjęcie decyzji o usunięciu/zachowaniu danego przepływu na podstawie uzyskanych wyników pomiarów - klasa ....
+2. Podjęcie decyzji o usunięciu/zachowaniu danego przepływu na podstawie uzyskanych wyników pomiarów - klasa .... Mechanizm decyzyjny zbudowany jest w oparciu o ....
 3. Wdrożenie ustalonej strategii - klasa .... 
 
 ## Opis poszczególnych plików
+* [floodlight/](https://github.com/SebastianKulig/SDN/tree/main/floodlight), katalog z plikami Floodlight bazujący na plikach źródłowych udostępnionych przez prowadzącego w ramach laboratorium nr 7
 * [custom_topology.py](https://github.com/SebastianKulig/SDN/blob/main/custom_topology.py), skrypt uruchamiający topologię, przeprowadzający atak oraz zbierający dane pomiarowe
 * [custom_topology_raw.py](https://github.com/SebastianKulig/SDN/blob/main/custom_topology_raw.py), plik zawierający jedynie topologię
 * [plot_maker.py](https://github.com/SebastianKulig/SDN/blob/main/plot_maker.py), skrypt do wizualizacji wyników zwracanych przez custom_topology.py
@@ -43,8 +44,9 @@ python3 ./plot_maker.py
 ```
 
 ## Przykładowy wynik
-Sumaryczna imość pakietów wejściowych do poszzcególnych portów przełącznika z wyłączonym mechanizmem odrzucania ruchu:
+Sumaryczna ilość pakietów wejściowych do poszczególnych portów przełącznika z wyłączonym mechanizmem odrzucania ruchu:
 ![no_discarding](./images/attack.png)
+
 Ten sam scenariusz testowy, ale z progiem decyzyjnym ustalonym na wartość 100 pakietów na sekundę:
 ![no_discarding](./images/attack2.png)
 
