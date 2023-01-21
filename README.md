@@ -11,7 +11,7 @@ Projekt ma na celu implementację mechanizmu obrony przeciwko atakowi DoS/DDoS z
 
 ## Użyta topologia
 Testowa sieć składa się z czterech hostów, które przeprowadzają atak, jednego serwera, na którym uruchomiono prosty serwer http. Całość jest połączona za pomocą jednego przełącznika komunikującego się z kontrolerem.
-![topologia](./images/topo.png)
+<img src="./images/topo.png" alt="topologia" width="600"/>
 
 przygotowana topologia  znajduje się w pliku [custom_topology_raw.py](https://github.com/SebastianKulig/SDN/blob/main/custom_topology_raw.py)
 
@@ -45,8 +45,8 @@ python3 ./plot_maker.py
 
 ## Przykładowy wynik
 Sumaryczna ilość pakietów wejściowych do poszczególnych portów przełącznika z wyłączonym mechanizmem odrzucania ruchu:
-![no_discarding](./images/attack.png)
+<img src="./images/attack.png" alt="no_discarding" width="600"/>
 
 Ten sam scenariusz testowy, ale z progiem decyzyjnym ustalonym na wartość 100 pakietów na sekundę:
-![no_discarding](./images/attack2.png)
+<img src="./images/attack2.png" alt="discarding" width="600"/>
 
