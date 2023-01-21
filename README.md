@@ -1,5 +1,5 @@
 
-# Siecie Sterowane Programowo
+# Sieci Sterowane Programowo
 
 Projekt ma na celu implementację mechanizmu obrony przeciwko atakowi DoS/DDoS z wykorzystaniem sterownika Floodlight.
 
