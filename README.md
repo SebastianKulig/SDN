@@ -44,7 +44,7 @@ python3 ./plot_maker.py
 ```
 
 ## Przykładowy wynik
-Sumaryczna ilość pakietów wejściowych do poszczególnych portów przełącznika z wyłączonym mechanizmem odrzucania ruchu:
+Sumaryczna ilość pakietów wejściowych do poszczególnych portów przełącznika z wyłączonym mechanizmem odrzucania ruchu:</br>
 <img src="./images/attack.png" alt="no_discarding" width="600"/>
 
 Ten sam scenariusz testowy, ale z progiem decyzyjnym ustalonym na wartość 100 pakietów na sekundę:
