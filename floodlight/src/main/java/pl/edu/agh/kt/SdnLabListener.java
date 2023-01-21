@@ -90,70 +90,28 @@ import org.projectfloodlight.openflow.protocol.match.Match;
 public class SdnLabListener extends ForwardingBase implements IFloodlightModule, IOFSwitchListener, IOFMessageListener {
 	protected static Logger log = LoggerFactory.getLogger(SdnLabListener.class);
 	protected static StatisticsCollector OFstats;
-	protected static final int PORT_STATISTICS_POLLING_INTERVAL = 3000;
+	protected static final int PORT_STATISTICS_POLLING_INTERVAL = 300;
 	
 	@Override
-	public net.floodlightcontroller.core.IListener.Command receive(
-			IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
-
-		log.info("************* NEW PACKET IN *************");
+	public net.floodlightcontroller.core.IListener.Command receive(IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
+		//log.info("************* NEW PACKET IN *************");
 		OFPacketIn pi = (OFPacketIn) msg;
-		Ethernet eth = IFloodlightProviderService.bcStore.get(cntx,
-				IFloodlightProviderService.CONTEXT_PI_PAYLOAD);
+		Ethernet eth = IFloodlightProviderService.bcStore.get(cntx,IFloodlightProviderService.CONTEXT_PI_PAYLOAD);
 		
+		StatisticsCollector.getInstance(sw, cntx);     
 		if (eth.isBroadcast() || eth.isMulticast()) {
 			doFlood(sw, pi, cntx);
 		} else {
 			doForwardFlow(sw, pi, cntx, false);
 		}
-		
-		StatisticsCollector.getInstance(sw);
-		
-//		if (StatisticsCollector.previousValuesFlows.containsKey(pi.getMatch())) {
-//			log.info("match: {}, speed in MB/s: {}", pi.getMatch(), StatisticsCollector.previousValuesFlows.get(pi.getMatch()) / PORT_STATISTICS_POLLING_INTERVAL * 1000.0 / 1024  / 1024);
-//		} else {
-//			log.info("match {}", pi.getMatch().getMatchFields());
-//		}
-//		if (StatisticsCollector.previousValuesPorts.containsKey(pi.getInPort().getPortNumber())) {
-//			log.info("port: {}, speed in MB/s: {}", pi.getInPort(), StatisticsCollector.previousValuesPorts.get(pi.getInPort().getPortNumber()) / PORT_STATISTICS_POLLING_INTERVAL * 1000.0 / 1024  / 1024);
-//		}
-		
-		return Command.STOP;
+				  
+        return Command.STOP;
 	}
 
 	@Override
 	public Command processPacketInMessage(IOFSwitch sw, OFPacketIn pi, IRoutingDecision decision, FloodlightContext cntx) {
-		
 		return Command.CONTINUE;
 	}
-
-//	protected void doDropFlow(IOFSwitch sw, OFPacketIn pi, IRoutingDecision decision, FloodlightContext cntx) {
-//		OFPort inPort = (pi.getVersion().compareTo(OFVersion.OF_12) < 0 ? pi.getInPort() : pi.getMatch().get(MatchField.IN_PORT));
-//		Match m = createMatchFromPacket(sw, inPort, cntx);
-//		OFFlowMod.Builder fmb = sw.getOFFactory().buildFlowAdd(); // this will be a drop-flow; a flow that will not output to any ports
-//		List<OFAction> actions = new ArrayList<OFAction>(); // set no action to drop
-//		U64 cookie = AppCookie.makeCookie(FORWARDING_APP_ID, 0);
-//		log.info("Droppingggg");
-//		fmb.setCookie(cookie)
-//		.setHardTimeout(FLOWMOD_DEFAULT_HARD_TIMEOUT)
-//		.setIdleTimeout(FLOWMOD_DEFAULT_IDLE_TIMEOUT)
-//		.setBufferId(OFBufferId.NO_BUFFER)
-//		.setMatch(m)
-//		.setPriority(FLOWMOD_DEFAULT_PRIORITY);
-//		
-//		FlowModUtils.setActions(fmb, actions, sw);
-//
-//		try {
-//			if (log.isDebugEnabled()) {
-//				log.debug("write drop flow-mod sw={} match={} flow-mod={}",
-//						new Object[] { sw, m, fmb.build() });
-//			}
-//			boolean dampened = messageDamper.write(sw, fmb.build());
-//			log.debug("OFMessage dampened: {}", dampened);
-//		} catch (IOException e) {
-//			log.error("Failure writing drop flow mod", e);
-//		}
-//	}
 
 	protected void doForwardFlow(IOFSwitch sw, OFPacketIn pi, FloodlightContext cntx, boolean requestFlowRemovedNotifn) {
 		OFPort inPort = (pi.getVersion().compareTo(OFVersion.OF_12) < 0 ? pi.getInPort() : pi.getMatch().get(MatchField.IN_PORT));
@@ -168,9 +126,7 @@ public class SdnLabListener extends ForwardingBase implements IFloodlightModule,
 				return;
 			}
 			
-			if (FLOOD_ALL_ARP_PACKETS && 
-					IFloodlightProviderService.bcStore.get(cntx, IFloodlightProviderService.CONTEXT_PI_PAYLOAD).getEtherType() 
-					== EthType.ARP) {
+			if (FLOOD_ALL_ARP_PACKETS && IFloodlightProviderService.bcStore.get(cntx, IFloodlightProviderService.CONTEXT_PI_PAYLOAD).getEtherType() == EthType.ARP) {
 				log.debug("ARP flows disabled in Forwarding. Flooding ARP packet");
 				doFlood(sw, pi, cntx);
 				return;
@@ -239,14 +195,14 @@ public class SdnLabListener extends ForwardingBase implements IFloodlightModule,
 			U64 cookie = AppCookie.makeCookie(FORWARDING_APP_ID, 0);
 			
 			if (route != null) {
-				log.debug("pushRoute inPort={} route={} " +
-						"destination={}:{}",
-						new Object[] { inPort, route,
-						dstDap.getSwitchDPID(),
-						dstDap.getPort()});
+//				log.debug("pushRoute inPort={} route={} " +
+//						"destination={}:{}",
+//						new Object[] { inPort, route,
+//						dstDap.getSwitchDPID(),
+//						dstDap.getPort()});
 
 
-				log.debug("Cretaing flow rules on the route, match rule: {}", m);
+//				log.debug("Cretaing flow rules on the route, match rule: {}", m);
 				pushRoute(route, m, pi, sw.getId(), cookie, 
 						cntx, requestFlowRemovedNotifn,
 						OFFlowModCommand.ADD);	
@@ -269,7 +225,7 @@ public class SdnLabListener extends ForwardingBase implements IFloodlightModule,
 			doFlood(sw, pi, cntx);
 		}
 	}
-
+	
 	/**
 	 * Instead of using the Firewall's routing decision Match, which might be as general
 	 * as "in_port" and inadvertently Match packets erroneously, construct a more
@@ -389,7 +345,7 @@ public class SdnLabListener extends ForwardingBase implements IFloodlightModule,
 		Set<OFPort> broadcastPorts = this.topologyService.getSwitchBroadcastPorts(sw.getId());
 
 		if (broadcastPorts == null) {
-			log.debug("BroadcastPorts returned null. Assuming single switch w/no links.");
+			//log.debug("BroadcastPorts returned null. Assuming single switch w/no links.");
 			/* Must be a single-switch w/no links */
 			broadcastPorts = Collections.singleton(OFPort.FLOOD);
 		}
@@ -407,13 +363,13 @@ public class SdnLabListener extends ForwardingBase implements IFloodlightModule,
 
 		try {
 			if (log.isTraceEnabled()) {
-				log.trace("Writing flood PacketOut switch={} packet-in={} packet-out={}",
-						new Object[] {sw, pi, pob.build()});
+//				log.trace("Writing flood PacketOut switch={} packet-in={} packet-out={}",
+//						new Object[] {sw, pi, pob.build()});
 			}
 			messageDamper.write(sw, pob.build());
 		} catch (IOException e) {
-			log.error("Failure writing PacketOut switch={} packet-in={} packet-out={}",
-					new Object[] {sw, pi, pob.build()}, e);
+//			log.error("Failure writing PacketOut switch={} packet-in={} packet-out={}",
+//					new Object[] {sw, pi, pob.build()}, e);
 		}
 
 		return;
@@ -472,8 +428,9 @@ public class SdnLabListener extends ForwardingBase implements IFloodlightModule,
 			log.info("Default idle timeout not configured. Using {}.", FLOWMOD_DEFAULT_IDLE_TIMEOUT);
 		}
 		tmp = configParameters.get("priority");
+		FLOWMOD_DEFAULT_PRIORITY = 100;
 		if (tmp != null) {
-			FLOWMOD_DEFAULT_PRIORITY = 35777;
+			FLOWMOD_DEFAULT_PRIORITY = 100;
 			log.info("Default priority set to {}.", FLOWMOD_DEFAULT_PRIORITY);
 		} else {
 			log.info("Default priority not configured. Using {}.", FLOWMOD_DEFAULT_PRIORITY);
