@@ -31,10 +31,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.ListenableFuture;
 
 public class StatisticsCollector {
-	private static final Logger logger = LoggerFactory
-			.getLogger(StatisticsCollector.class);
+	private static final Logger logger = LoggerFactory.getLogger(StatisticsCollector.class);
 	private IOFSwitch sw;
 	private FloodlightContext cntx;
+	private boolean isBlockingDoSEnabled = true;
 	
 	public static final int PORT_STATISTICS_POLLING_INTERVAL = 3000; // in ms
 	private static StatisticsCollector singleton;
@@ -44,7 +44,6 @@ public class StatisticsCollector {
 	public class StatisticsPoller extends TimerTask {
 		private final Logger logger = LoggerFactory.getLogger(StatisticsPoller.class);
 		private OFStatsType statsType;
-		private Match match;
 		
 		public StatisticsPoller(OFStatsType inStatsType) {
 			statsType = inStatsType;
@@ -60,46 +59,26 @@ public class StatisticsCollector {
 				}
 				ListenableFuture<?> future;
 				List<OFStatsReply> values = null;
-				OFStatsRequest<?> req = null;
-				switch (this.statsType) {
-				
-				case FLOW:
-					match = sw.getOFFactory().buildMatch().build();
-		            req = sw.getOFFactory().buildFlowStatsRequest()
-		                    .setMatch(match)
-		                    .setOutPort(OFPort.ANY)
-		                    .setTableId(TableId.ALL)
-		                    .build();
-					break;
-				case PORT:
-					req = sw.getOFFactory().buildPortStatsRequest()
-							.setPortNo(OFPort.ANY).build();
-					break;
-				default:
-					logger.error("Stats Request Type {} not implemented yet", this.statsType.name());
-					break;
-				}
+				OFStatsRequest<?> req = prepareStatsRequest(sw, statsType);
 				
 				try {
 					if (req != null) {
 						future = sw.writeStatsRequest(req);
-						values = (List<OFStatsReply>) future.get(
-								PORT_STATISTICS_POLLING_INTERVAL *1000 / 2,
-								TimeUnit.MILLISECONDS); 
+						values = (List<OFStatsReply>) future.get(PORT_STATISTICS_POLLING_INTERVAL *1000 / 2 ,TimeUnit.MILLISECONDS);
 					}
 					switch (this.statsType) {
 					case FLOW:
 						OFFlowStatsReply fsr = (OFFlowStatsReply) values.get(0);
 						for (OFFlowStatsEntry pse : fsr.getEntries()) {
 							IPv4Address srcIp = pse.getMatch().get(MatchField.IPV4_SRC);
-							
+							IPv4Address dstIp = pse.getMatch().get(MatchField.IPV4_DST);
 							if (previousValuesFlows.containsKey(srcIp)) {							
                                 double tput = 8.0 * (pse.getByteCount().getValue() - previousValuesFlows.get(srcIp)) / PORT_STATISTICS_POLLING_INTERVAL * 1000.0 / 1024 / 1024;                                                         
                                 logger.info("\tSRC IP: {}, speed: {} MB/s", srcIp, tput);
                                 logger.info("\tSRC IP: {}, packets count: {}", srcIp, pse.getPacketCount().getValue());
-                                if(pse.getPacketCount().getValue() > 300L){
+                                if(pse.getPacketCount().getValue() > 300L && isBlockingDoSEnabled){
                                 	logger.info("\t====================== ATTACK DETECTED - ADDING BLOCKING RULE ======================");                                	                                            	
-                                	BlockingRuleBuilder.addBlockingRule(sw, pse.getMatch().get(MatchField.IPV4_SRC));
+                                	BlockingRuleBuilder.addBlockingRule(sw, srcIp, dstIp);
                                 }                               
 							}
 							previousValuesFlows.put(pse.getMatch().get(MatchField.IPV4_SRC), pse.getByteCount().getValue());
@@ -147,5 +126,35 @@ public class StatisticsCollector {
 			}
 		}
 		return singleton;
+	}
+	
+	private OFStatsRequest<?> prepareStatsRequest(IOFSwitch sw, OFStatsType statsType){
+		OFStatsRequest<?> req = null;
+		switch (statsType) {
+		case FLOW:
+            req = prepareFlowStatsRequest(sw);
+			break;
+		case PORT:
+			req = preparePortStatsRequest(sw);
+			break;
+		default:
+			logger.error("Stats Request Type {} not implemented yet", statsType.name());
+			break;
+		}
+		return req;
+	}
+	
+	private OFStatsRequest<?> preparePortStatsRequest(IOFSwitch sw){
+		return sw.getOFFactory().buildPortStatsRequest()
+				.setPortNo(OFPort.ANY).build();
+	}
+	
+	private OFStatsRequest<?> prepareFlowStatsRequest(IOFSwitch sw){
+		Match match = sw.getOFFactory().buildMatch().build();
+		return sw.getOFFactory().buildFlowStatsRequest()
+                .setMatch(match)
+                .setOutPort(OFPort.ANY)
+                .setTableId(TableId.ALL)
+                .build();
 	}
 }

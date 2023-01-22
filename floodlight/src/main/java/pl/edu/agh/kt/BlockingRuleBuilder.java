@@ -45,12 +45,13 @@ public class BlockingRuleBuilder {
 	protected static boolean FLOWMOD_DEFAULT_MATCH_IP_ADDR = true;
 	protected static boolean FLOWMOD_DEFAULT_MATCH_TRANSPORT = true;
 
-	public static void addBlockingRule(IOFSwitch sw, IPv4Address srcIp) {
+	public static void addBlockingRule(IOFSwitch sw, IPv4Address srcIp, IPv4Address dstIp) {
 		OFFlowMod.Builder fmb = sw.getOFFactory().buildFlowAdd();
 		Match.Builder mb = sw.getOFFactory().buildMatch();		
 		if (srcIp != null) { 
-			mb.setExact(MatchField.ETH_TYPE, EthType.IPv4).setExact(MatchField.IPV4_SRC, srcIp);
-			logger.info("============================== BLOCKING RULE ADDED. BLOCK SRC IP ADDRESS: {}", srcIp);
+			mb.setExact(MatchField.ETH_TYPE, EthType.IPv4).setExact(MatchField.IPV4_SRC, srcIp)
+			.setExact(MatchField.ETH_TYPE, EthType.IPv4).setExact(MatchField.IPV4_DST , dstIp);
+			logger.info("====================== BLOCKING RULE ADDED. BLOCK SRC IP: {} TO DST IP {} ======================", srcIp, dstIp);
 		}
 		Match m = mb.build();
 

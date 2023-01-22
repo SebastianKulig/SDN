@@ -28,11 +28,12 @@ class CustomTopo(Topo):
 
         # Add links
         linkOpts = dict(bw=10, delay='5ms', max_queue_size=1000, use_htb=True)
+        linkOptsToServer = dict(bw=10, delay='5ms', max_queue_size=4000, use_htb=True)
         self.addLink(h1, s1, **linkOpts)
         self.addLink(h2, s1, **linkOpts)
         self.addLink(h3, s1, **linkOpts)
         self.addLink(h4, s1, **linkOpts)
-        self.addLink(server, s1, **linkOpts)
+        self.addLink(server, s1, **linkOptsToServer)
 
 
 def start_monitor():
@@ -46,19 +47,19 @@ def start_attack(net):
     h1 = net.get('h1')
     server = net.get('server')
 #    h1.cmd("hping3 --flood -p 80 {} &".format(server.IP()))
-    h1.cmd("hping3 -1 -d 100000 {} &".format(server.IP()))
+    h1.cmd("hping3 -1 -d 1000000000 {} &".format(server.IP()))
 
 def start_normal_traffic(net):
-   info('*** Start normal traffic ***')
+   info('*** Start normal traffic ***\n')
    h2 = net.get('h2')
    server = net.get('server')
-   h2.cmd('hping3 -1 -d 100 {} &'.format(server.IP()))
+   h2.cmd('hping3 -1 -d 1000 {} &'.format(server.IP()))
    
    h3 = net.get('h3')
-   h3.cmd('hping3 -1 -d 100 {} &'.format(server.IP()))
+   h3.cmd('hping3 -1 -d 1000 {} &'.format(server.IP()))
 
    h4 = net.get('h4')
-   h4.cmd('hping3 -1 -d 100 {} &'.format(server.IP()))
+   h4.cmd('hping3 -1 -d 1000 {} &'.format(server.IP()))
 
 def stop_attack():
     info('*** Stop attack\n')
@@ -87,11 +88,11 @@ def run():
 
     # Start generating traffic
     start_normal_traffic(net)
-    
+    time.sleep(2)    
     start_monitor()
     time.sleep(5)
     start_attack(net)
-    time.sleep(60)
+    time.sleep(120)
   #  CLI( net )
 
     stop_attack()
