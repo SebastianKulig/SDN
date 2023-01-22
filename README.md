@@ -1,4 +1,5 @@
 
+
 # Sieci Sterowane Programowo
 
 Projekt ma na celu implementację mechanizmu obrony przeciwko atakowi DoS/DDoS z wykorzystaniem sterownika Floodlight.
@@ -19,8 +20,8 @@ przygotowana topologia  znajduje się w pliku [custom_topology_raw.py](https://g
 
 Całość została podzielona na trzy moduły funkcjonalne:
 1. Zbieranie statystyk z przełącznika - klasa `StatisticsCollector` w pakiecie `pl.edu.agh.kt`
-2. Podjęcie decyzji o usunięciu/zachowaniu danego przepływu na podstawie uzyskanych wyników pomiarów - klasa .... Mechanizm decyzyjny zbudowany jest w oparciu o ....
-3. Wdrożenie ustalonej strategii - klasa .... 
+2. Podjęcie decyzji o usunięciu/zachowaniu danego przepływu na podstawie uzyskanych wyników pomiarów - klasa `StatisticsCollector` oraz `BlockingRuleBuilder` Mechanizm decyzyjny zbudowany jest w oparciu o ustalony próg ustalony za pomocą klasy `...`.
+3. Wdrożenie ustalonej strategii - klasa `BlockingRuleBuilder` 
 
 ## Opis poszczególnych plików
 * [floodlight/](https://github.com/SebastianKulig/SDN/tree/main/floodlight), katalog z plikami Floodlight bazujący na plikach źródłowych udostępnionych przez prowadzącego w ramach laboratorium nr 7
@@ -49,4 +50,3 @@ Sumaryczna ilość pakietów wejściowych do poszczególnych portów przełączn
 
 Ten sam scenariusz testowy, ale z progiem decyzyjnym ustalonym na wartość 100 pakietów na sekundę:
 <img src="./images/attack2.png" alt="discarding" width="600"/>
-
