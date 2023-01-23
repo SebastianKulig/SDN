@@ -128,7 +128,7 @@ public class SdnLabListener extends ForwardingBase implements IFloodlightModule,
 				String dst_addr = ipv4.getDestinationAddress().toString();
 				String dst_port = tcp.getDestinationPort().toString();
 				
-				String key = src_addr + ":" + src_port + "->" + dst_addr + ":" + dst_port;
+				String key = src_addr + "->" + dst_addr + ":" + dst_port;
 
 				if (!statsMap.containsKey(key))
 					statsMap.put(key, new TcpFlagStats());
