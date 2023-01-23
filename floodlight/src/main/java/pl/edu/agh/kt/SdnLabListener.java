@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,20 +93,99 @@ public class SdnLabListener extends ForwardingBase implements IFloodlightModule,
 	protected static Logger log = LoggerFactory.getLogger(SdnLabListener.class);
 	protected static StatisticsCollector OFstats;
 	protected static final int PORT_STATISTICS_POLLING_INTERVAL = 300;
+
+	protected static HashMap<String, TcpFlagStats> statsMap = new HashMap<String, TcpFlagStats>();
 	
+	private class TcpFlagStats {
+		public int ack;
+		public int syn;
+		public int synack;
+		public int fin;
+		public int finack;
+
+		public TcpFlagStats() {
+			ack = 0;
+			synack = 0;
+			fin = 0;
+			finack = 0;
+		}
+	}
+
 	@Override
 	public net.floodlightcontroller.core.IListener.Command receive(IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
 		//log.info("************* NEW PACKET IN *************");
 		OFPacketIn pi = (OFPacketIn) msg;
 		Ethernet eth = IFloodlightProviderService.bcStore.get(cntx,IFloodlightProviderService.CONTEXT_PI_PAYLOAD);
-		
-		StatisticsCollector.getInstance(sw, cntx);     
+
+		//StatisticsCollector.getInstance(sw, cntx);
+
+		if (eth.getEtherType() == EthType.IPv4) {
+			IPv4 ipv4 = (IPv4) eth.getPayload();
+			if (ipv4.getProtocol() == IpProtocol.TCP) {
+				TCP tcp = (TCP) ipv4.getPayload();
+				String src_addr = ipv4.getSourceAddress().toString();
+				String src_port = tcp.getSourcePort().toString();
+				String dst_addr = ipv4.getDestinationAddress().toString();
+				String dst_port = tcp.getDestinationPort().toString();
+				
+				String key = src_addr + ":" + src_port + "->" + dst_addr + ":" + dst_port;
+
+				if (!statsMap.containsKey(key))
+					statsMap.put(key, new TcpFlagStats());
+				
+				TcpFlagStats stats = statsMap.get(key);
+
+				switch (tcp.getFlags()) {
+					case 2:
+						stats.syn++;
+						break;
+					case 18:
+						stats.synack++;
+						break;
+					case 1: // FIN Flag
+						stats.fin++;
+						break;
+					case 17: // FIN-ACK Flag
+						stats.finack++;
+						break;
+					case 16: // ACK
+						stats.ack++;
+						break;
+					default:
+						break;
+				}
+
+				long totalFlags = stats.ack + stats.synack + stats.syn;
+				if (totalFlags > 0) {
+					double entropy = Integer.MAX_VALUE;
+					double probSyn = (double)stats.syn/totalFlags;
+					double probSynAck = (double)stats.synack/totalFlags;
+					double probAck = (double)stats.ack/totalFlags;
+					double temp1 = 0;
+					double temp2 = 0;
+					double temp3 = 0;
+					if(probSyn != 0)
+						temp1 = probSyn*(Math.log(probSyn)/Math.log(2));
+					if(probSynAck != 0)
+						temp2 = probSynAck*(Math.log(probSynAck)/Math.log(2));
+					if(probAck != 0)	
+						temp3 = probAck*(Math.log(probAck)/Math.log(2));		
+					entropy = -(temp1+temp2+temp3);
+					if (entropy<1.3 && Math.abs(stats.syn - stats.ack)>5000) {
+						log.info("\t====================== ATTACK DETECTED - ADDING BLOCKING RULE ======================");
+						log.info("\tBlocking path: {}", key);
+						BlockingRuleBuilder.addBlockingRule(sw, ipv4.getSourceAddress(), ipv4.getDestinationAddress());
+					}
+				}
+			}
+		}
+
 		if (eth.isBroadcast() || eth.isMulticast()) {
 			doFlood(sw, pi, cntx);
 		} else {
 			doForwardFlow(sw, pi, cntx, false);
 		}
-				  
+
         return Command.STOP;
 	}
 
