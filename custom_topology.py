@@ -47,7 +47,8 @@ def start_attack(net):
     h1 = net.get('h1')
     server = net.get('server')
 #    h1.cmd("hping3 --flood -p 80 {} &".format(server.IP()))
-    h1.cmd("hping3 -1 -d 1000000000 {} &".format(server.IP()))
+#    h1.cmd("hping3 -1 -d 1000000000 {} &".format(server.IP()))
+    h1.cmd("hping3 -q -n -d 120 -S -p 80 --flood {} &".format(server.IP()))
 
 def start_normal_traffic(net):
    info('*** Start normal traffic ***\n')

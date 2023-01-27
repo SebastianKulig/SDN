@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def main(filename: str) -> None:
+def main(filename : str):
     df = pd.read_csv(filename, sep=',')
 
     # funkcje agregujące
