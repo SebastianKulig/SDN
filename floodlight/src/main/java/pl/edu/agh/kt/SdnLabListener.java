@@ -171,7 +171,7 @@ public class SdnLabListener extends ForwardingBase implements IFloodlightModule,
 					if(probAck != 0)	
 						temp3 = probAck*(Math.log(probAck)/Math.log(2));		
 					entropy = -(temp1+temp2+temp3);
-					if (entropy<1.3 && Math.abs(stats.syn - stats.ack)>5000) {
+					if (entropy<1.3 && Math.abs(stats.syn - stats.ack)>100) {
 						log.info("\t====================== ATTACK DETECTED - ADDING BLOCKING RULE ======================");
 						log.info("\tBlocking path: {}", key);
 						BlockingRuleBuilder.addBlockingRule(sw, ipv4.getSourceAddress(), ipv4.getDestinationAddress());
