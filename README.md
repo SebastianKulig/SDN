@@ -2,7 +2,7 @@
 
 # Sieci Sterowane Programowo
 
-Projekt ma na celu implementację mechanizmu obrony przeciwko atakowi DoS/DDoS z wykorzystaniem sterownika Floodlight.
+Projekt ma na celu implementację mechanizmu obrony przeciwko atakowi DoS/DDoS z wykorzystaniem sterownika Floodlight na podstawie analizy otrzymywanych pakietów.
 
 ## Zespół projektowy
 * Kulig Sebastian
@@ -14,13 +14,14 @@ Projekt ma na celu implementację mechanizmu obrony przeciwko atakowi DoS/DDoS z
 Testowa sieć składa się z czterech hostów, które przeprowadzają atak, jednego serwera, na którym uruchomiono prosty serwer http. Całość jest połączona za pomocą jednego przełącznika komunikującego się z kontrolerem.
 <img src="./images/topo.png" alt="topologia" width="600"/>
 
-przygotowana topologia  znajduje się w pliku [custom_topology_raw.py](https://github.com/SebastianKulig/SDN/blob/main/custom_topology_raw.py)
+Przygotowana topologia  znajduje się w pliku [custom_topology_raw.py](https://github.com/SebastianKulig/SDN/blob/main/custom_topology_raw.py)
 
 ## Schemat działania
 
 Całość została podzielona na trzy moduły funkcjonalne:
 1. Zbieranie statystyk z przełącznika - klasa `StatisticsCollector` w pakiecie `pl.edu.agh.kt`
-2. Podjęcie decyzji o usunięciu/zachowaniu danego przepływu na podstawie uzyskanych wyników pomiarów - klasa `StatisticsCollector` oraz `BlockingRuleBuilder` Mechanizm decyzyjny zbudowany jest w oparciu o ustalony próg ustalony za pomocą klasy `...`.
+2. Analiza przychodzących pakietów i zebranie danych dotyczących flag TCP - klasa `Listener` w pakiecie `pl.edu.agh.kt`
+2. Podjęcie decyzji o usunięciu/zachowaniu danego przepływu na podstawie uzyskanych wyników pomiarów - klasa `StatisticsCollector` oraz `BlockingRuleBuilder` Mechanizm decyzyjny zbudowany jest w oparciu o wyliczenia entropii przychodzących pakietów oraz próg treshold ustalony za pomocą rozszerzeń do metody `Receive`.
 3. Wdrożenie ustalonej strategii - klasa `BlockingRuleBuilder` 
 
 ## Opis poszczególnych plików
