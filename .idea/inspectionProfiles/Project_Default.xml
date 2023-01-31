@@ -1,0 +1,18 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="files_rc" />
+          <option value="icons_rc" />
+          <option value="app.vehiclesDetection.wrapper.progress_callback" />
+          <option value="Scraper_reddit.scraper_proxy.scraper_reddit" />
+          <option value="lamp.Lamp" />
+          <option value="lamp.LampState" />
+          <option value="scripts.components.collector_executor.data2metric" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
